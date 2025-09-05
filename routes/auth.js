@@ -3,12 +3,9 @@ const router = express.Router();
 const bcrypt = require('bcryptjs'); // For hashing passwords
 const User = require('../models/user'); // Import the User model
 
-
+ 
 
 // Render the registration form
-router.get('/register',(req,res)=>{
-    res.render('register'); // Render the register.ejs file
-});
 router.post('/register',async(req,res)=>{
    try{
      const {username,password} = req.body;
@@ -31,3 +28,30 @@ router.post('/register',async(req,res)=>{
     res.status(500).send('Server error during registration.');
    }
 });
+
+// Render the login form
+// ## LOGIN ROUTE ##
+router.post('/login',async(req,res)=>{
+    try{
+        const {username,password} = req.body;
+         // 1. Find the user in the database
+         const user= await User.findOne({username: username});
+          if (!user) {
+            return res.status(400).send('Invalid credentials.');
+        }
+         // 2. Compare the submitted password with the stored hash
+         const isMatch =await bcrypt.compare(password, user.password);
+            if(!isMatch){
+                return res.status(400).send('Invalid credentials.');
+            }
+
+            // 3. If they match, log the user in by saving their ID to the session
+            req.session.userId = user._id;
+            // 4. Redirect to the main dashboard
+            res.redirect('/dashboard');
+    }
+    catch(err){
+        console.error(err);
+        res.status(500).send('Server error during login.');
+    }
+})
