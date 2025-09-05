@@ -54,4 +54,18 @@ router.post('/login',async(req,res)=>{
         console.error(err);
         res.status(500).send('Server error during login.');
     }
-})
+});
+
+//logout session 
+router.get('/logout',(req,res)=>{
+    // 1. Destroy the session
+    req.session.destroy(err=>{
+        if(err){
+            return res.redirect('/dashboard'); // If error, send back to dashboard
+        }
+    // 2. Clear the cookie and redirect to login
+        res.clearCookie('connect.sid'); // The default session cookie name
+        res.redirect('/login');
+    });
+module.exports = router;
+});
