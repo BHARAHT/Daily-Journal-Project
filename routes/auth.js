@@ -67,5 +67,6 @@ router.get('/logout',(req,res)=>{
         res.clearCookie('connect.sid'); // The default session cookie name
         res.redirect('/login');
     });
-module.exports = router;
 });
+
+module.exports = router;

@@ -3,6 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 
+// Import Routes
+const authRoutes = require('./routes/auth');
 // 2. Initialize the Express App
 const app = express();
 
@@ -14,6 +16,7 @@ const PORT = process.env.PORT || 8000;
 // TODO: Replace with your MongoDB connection string
 // const MONGO_URI = 'mongodb+srv://23eg105j50_db_user:27zG48cEyJ38C8MG@<cluster-url>/mindscribe?retryWrites=true&w=majority';
 const MONGO_URI = 'mongodb+srv://23eg105j50_db_user:27zG48cEyJ38C8MG@cluster0.dgto41x.mongodb.net/JournalDB?retryWrites=true&w=majority&appName=Cluster0';
+
 
 
 // 3. Configure Middleware
@@ -47,13 +50,38 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB connected successfully!'))
   .catch(err => console.error('MongoDB connection error:', err));
 
+  app.use(authRoutes);
+
 // 6. Set Up View Engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'public'));
 
 // 7. Define Routes
 app.get('/', (req, res) => {
-  res.render('index'); // Render the index.ejs file
+    // If a user is logged in, send them to the dashboard. Otherwise, the login page.
+    if (req.session.userId) {
+        res.redirect('/dashboard');
+    } else {
+        res.redirect('/login');
+    }
+});
+app.get('/login',(req,res)=>{
+    res.render('login'); // Renders views/login.ejs
+});
+
+app.get('/register', (req, res) => {
+    res.render('register'); // Renders views/register.ejs
+});
+
+// A temporary, protected route for our dashboard
+app.get('/dashboard', (req, res) => {
+    // Check if a user is logged in
+    if (!req.session.userId) {
+        // If not, redirect them to the login page
+        return res.redirect('/login');
+    }
+    // If they are logged in, show them a welcome message
+    res.send(`<h1>Welcome to your Dashboard!</h1><a href="/logout">Logout</a>`);
 });
 
 // 8. Start the Server
